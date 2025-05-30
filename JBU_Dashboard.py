@@ -26,7 +26,7 @@ def main():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.metric("Total Enrollment", "2,343", help="Total students across all programs")
+        st.metric("Total Enrollment", "2,200+", help="Total students across all programs")
 
     with col2:
         st.metric("Student-Faculty Ratio", "14:1", help="Ratio of students to faculty members")
@@ -35,7 +35,7 @@ def main():
         st.metric("Undergraduate Programs", "50+", help="Number of bachelor's degree programs")
 
     with col4:
-        st.metric("Graduate Programs", "10+", help="Number of master's degree programs")
+        st.metric("Graduate Programs", "18", help="Number of master's degree programs")
 
     st.header("Academic Structure")
 
