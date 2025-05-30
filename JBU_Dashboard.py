@@ -10,28 +10,14 @@ def main():
         layout="wide"
     )
 
-    st.markdown("""
+    hide_streamlit_style = """
     <style>
-    .stApp {
-        background-color: #f0f2f6;
-        --primary-color: #7F3D8A;  /* JBU purple */
-        --secondary-color: #FFD700; /* JBU gold */
-        font-family: 'Arial', sans-serif;
-    }
-    h1 {
-        color: #7F3D8A;
-    }
-    div[data-testid="metric-container"] {
-        background-color: white;
-        border-radius: 10px;
-        padding: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     .stAlert {display: none;}
     </style>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
     st.title("John Brown University Institutional Dashboard")
     st.markdown("---")
