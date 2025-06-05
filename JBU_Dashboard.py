@@ -10,14 +10,6 @@ def main():
         layout="wide"
     )
 
-    hide_streamlit_style = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    .stAlert {display: none;}
-    </style>
-    """
-    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
     st.title("John Brown University Institutional Dashboard")
     st.markdown("---")
