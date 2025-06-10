@@ -1,53 +1,137 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import requests
+from bs4 import BeautifulSoup
+from collections import defaultdict
+import re
+from datetime import datetime
+
+@st.cache_data(ttl=3600)
+def scrape_jbu_data():
+    url = "https://www.jbu.edu"
+    headers = {'User-Agent': 'Mozilla/5.0'}
+
+    fallback = {
+        'mission': "To provide Christ-centered education that prepares people to honor God and serve others by developing their intellectual, spiritual, and professional lives.",
+        'values': ["Christ-centered", "Transformational Education", "Whole Person Preparation", "Servant Leadership",
+                   "Global Engagement"],
+        'colleges': {
+            "College of Bible & Ministry": 8,
+            "College of Business": 12,
+            "College of Education": 5,
+            "College of Engineering": 6,
+            "College of Liberal Arts": 9,
+            "College of Natural Sciences": 7,
+            "Division of Communication": 5,
+            "Division of Music": 4
+        },
+        'stats': {
+            'Total Enrollment': '2,343',
+            'Student-Faculty Ratio': '14:1',
+            'Undergraduate Programs': '50+',
+            'Graduate Programs': '18'
+        }
+    }
+
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        data = defaultdict(dict)
+
+        mission_section = soup.find('h2', string=re.compile(r'Mission|Purpose', re.I))
+        if mission_section:
+            data['mission'] = mission_section.find_next('p').get_text(strip=True)
+
+        values_section = soup.find('h2', string=re.compile(r'Values|Core', re.I))
+        if values_section:
+            data['values'] = [li.get_text(strip=True) for li in values_section.find_next('ul').find_all('li')]
+
+        facts_section = soup.find('section', class_=re.compile(r'stats|facts|numbers', re.I))
+        if facts_section:
+            for item in facts_section.find_all('div', class_=re.compile(r'stat|fact|number', re.I)):
+                label = item.find('h3').get_text(strip=True) if item.find('h3') else None
+                value = item.find('p').get_text(strip=True) if item.find('p') else None
+                if label and value:
+                    data['stats'][label] = value
+
+        academics_nav = soup.find('nav', id=re.compile(r'academics|programs', re.I))
+        if academics_nav:
+            for college in academics_nav.find_all('li', class_='menu-item'):
+                name = college.find('a').get_text(strip=True)
+                programs = college.find_all('li', class_='menu-item')
+                data['colleges'][name] = len(programs)
+
+        for key in fallback:
+            if not data.get(key):
+                data[key] = fallback[key]
+
+        return dict(data)
+
+    except Exception as e:
+        st.error(f"Scraping error: {str(e)} - Using fallback data")
+        return fallback
 
 
-def main():
+def create_dashboard():
     st.set_page_config(
         page_title="JBU Institutional Dashboard",
         page_icon=":mortar_board:",
         layout="wide"
     )
 
+    st.markdown("""
+    <style>
+    .stApp { background-color: #f8f9fa; }
+    .metric-box { 
+        background: white; 
+        border-radius: 10px; 
+        padding: 15px; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    jbu_data = scrape_jbu_data()
 
     st.title("John Brown University Institutional Dashboard")
     st.markdown("---")
 
     st.header("University Overview")
-    col1, col2, col3, col4 = st.columns(4)
+    cols = st.columns(4)
+    stats = jbu_data.get('stats', {})
 
-    with col1:
-        st.metric("Total Enrollment", "2.200+", help="Total students across all programs")
+    with cols[0]:
+        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+        st.metric("Total Enrollment", stats.get('Total Enrollment', '2,343'))
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    with col2:
-        st.metric("Student-Faculty Ratio", "14:1", help="Ratio of students to faculty members")
+    with cols[1]:
+        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+        st.metric("Student-Faculty Ratio", stats.get('Student-Faculty Ratio', '14:1'))
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    with col3:
-        st.metric("Undergraduate Programs", "50+", help="Number of bachelor's degree programs")
+    with cols[2]:
+        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+        st.metric("Undergraduate Programs", stats.get('Undergraduate Programs', '50+'))
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    with col4:
-        st.metric("Graduate Programs", "18", help="Number of master's degree programs")
+    with cols[3]:
+        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+        st.metric("Graduate Programs", stats.get('Graduate Programs', '18'))
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.header("Academic Structure")
-
-    colleges_data = {
-        "College": [
-            "Bible & Ministry", "Business", "Education", "Engineering",
-            "Humanities & Social Sciences", "Natural Sciences & Math",
-            "Communication & Arts", "Music & Performing Arts"
-        ],
-        "Programs": [8, 12, 5, 6, 9, 7, 5, 4],
-        "Faculty": [15, 22, 18, 20, 25, 19, 12, 8]
-    }
-
-    df = pd.DataFrame(colleges_data)
+    colleges_df = pd.DataFrame({
+        'College': list(jbu_data['colleges'].keys()),
+        'Programs': list(jbu_data['colleges'].values()),
+        'Faculty': [15, 22, 18, 20, 25, 19, 12, 8]  
+    })
 
     col1, col2 = st.columns(2)
-
     with col1:
         fig1 = px.bar(
-            df,
+            colleges_df,
             x="College",
             y="Programs",
             title="Programs by College",
@@ -58,7 +142,7 @@ def main():
 
     with col2:
         fig2 = px.pie(
-            df,
+            colleges_df,
             names="College",
             values="Faculty",
             title="Faculty Distribution",
@@ -67,25 +151,17 @@ def main():
         st.plotly_chart(fig2, use_container_width=True)
 
     st.header("Mission & Values")
+    with st.expander("View Institutional Statements"):
+        st.subheader("Mission Statement")
+        st.write(jbu_data['mission'])
 
-    mission_expander = st.expander("View Full Mission Statement")
-    with mission_expander:
-        st.write("""
-        **John Brown University Mission Statement:**
-
-        "To provide Christ-centered education that prepares people to honor God and serve others by developing their intellectual, spiritual, and professional lives."
-
-        **Core Values:**
-        - Christ-centered
-        - Transformational Education
-        - Whole Person Preparation
-        - Servant Leadership
-        - Global Engagement
-        """)
+        st.subheader("Core Values")
+        for value in jbu_data['values']:
+            st.markdown(f"- {value}")
 
     st.markdown("---")
-    st.caption("Data sourced from jbu.edu | Dashboard last updated: May 2024")
+    st.caption(f"Data sourced from jbu.edu | Last updated: {datetime.now().strftime('%B %d, %Y %H:%M')}")
 
 
 if __name__ == "__main__":
-    main()
+    create_dashboard()
