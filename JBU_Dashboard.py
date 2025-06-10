@@ -27,7 +27,7 @@ def scrape_jbu_data():
             "Division of Music": 4
         },
         'stats': {
-            'Total Enrollment': '2,343',
+            'Total Enrollment': '2,200+',
             'Student-Faculty Ratio': '14:1',
             'Undergraduate Programs': '50+',
             'Graduate Programs': '18'
