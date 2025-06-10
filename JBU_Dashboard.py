@@ -27,7 +27,7 @@ def scrape_jbu_data():
             "Division of Music": 4
         },
         'stats': {
-            'Total Enrollment': '2,500',
+            'Total Enrollment': '2,343',
             'Student-Faculty Ratio': '14:1',
             'Undergraduate Programs': '50+',
             'Graduate Programs': '18'
@@ -119,7 +119,7 @@ def create_dashboard():
 
     with cols[0]:
         st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Total Enrollment", stats.get('Total Enrollment', '2,500'))
+        st.metric("Total Enrollment", stats.get('Total Enrollment', '2,343'))
         st.markdown('</div>', unsafe_allow_html=True)
 
     with cols[1]:
