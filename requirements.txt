@@ -1,7 +1,5 @@
 streamlit
 plotly
 pandas
-BeautifulSoup
-defaultdict
-re
-datetime
+requests
+beautifulsoup4
