@@ -27,7 +27,7 @@ def scrape_jbu_data():
             "Division of Music": 4
         },
         'stats': {
-            'Total Enrollment': '2,200+',
+            'Total Enrollment': '2,343',
             'Student-Faculty Ratio': '14:1',
             'Undergraduate Programs': '50+',
             'Graduate Programs': '18'
@@ -66,7 +66,7 @@ def scrape_jbu_data():
             if not data.get(key):
                 data[key] = fallback[key]
 
-        return dict(data)
+        return dict(data), data is fallback
 
     except Exception as e:
         st.error(f"Scraping error: {str(e)} - Using fallback data")
@@ -81,20 +81,19 @@ def create_dashboard():
     )
 
     st.markdown("""
-<style>
-.metric-box {
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    background-color: var(--background-color);
-    color: var(--text-color);
-}
-</style>
-""", unsafe_allow_html=True)
+    <style>
+    .metric-box {
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-
-    jbu_data = scrape_jbu_data()
+    jbu_data, using_fallback = scrape_jbu_data()
 
     st.title("John Brown University Institutional Dashboard")
     st.markdown("---")
@@ -105,7 +104,7 @@ def create_dashboard():
 
     with cols[0]:
         st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Total Enrollment", stats.get('Total Enrollment', '2,200'))
+        st.metric("Total Enrollment", stats.get('Total Enrollment', '2,343'))
         st.markdown('</div>', unsafe_allow_html=True)
 
     with cols[1]:
@@ -127,7 +126,7 @@ def create_dashboard():
     colleges_df = pd.DataFrame({
         'College': list(jbu_data['colleges'].keys()),
         'Programs': list(jbu_data['colleges'].values()),
-        'Faculty': [15, 22, 18, 20, 25, 19, 12, 8]  
+        'Faculty': [15, 22, 18, 20, 25, 19, 12, 8]
     })
 
     col1, col2 = st.columns(2)
@@ -162,6 +161,11 @@ def create_dashboard():
             st.markdown(f"- {value}")
 
     st.markdown("---")
+
+    if using_fallback:
+        st.warning("⚠️ Showing fallback data (scraping failed or timed out).")
+    else:
+        st.success("✅ Live data successfully loaded from jbu.edu.")
     st.caption(f"Data sourced from jbu.edu | Last updated: {datetime.now().strftime('%B %d, %Y %H:%M')}")
 
 
