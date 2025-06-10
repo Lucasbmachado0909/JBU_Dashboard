@@ -105,7 +105,7 @@ def create_dashboard():
 
     with cols[0]:
         st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Total Enrollment", stats.get('Total Enrollment', '2,343'))
+        st.metric("Total Enrollment", stats.get('Total Enrollment', '2,200'))
         st.markdown('</div>', unsafe_allow_html=True)
 
     with cols[1]:
