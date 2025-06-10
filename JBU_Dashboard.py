@@ -27,25 +27,33 @@ def scrape_jbu_data():
             "Division of Music": 4
         },
         'stats': {
-            'Total Enrollment': '2,200+',
+            'Total Enrollment': '2,343',
             'Student-Faculty Ratio': '14:1',
             'Undergraduate Programs': '50+',
             'Graduate Programs': '18'
         }
     }
 
+    used_fallback = False
+    data = defaultdict(dict)
+
     try:
         response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.content, 'html.parser')
-        data = defaultdict(dict)
 
         mission_section = soup.find('h2', string=re.compile(r'Mission|Purpose', re.I))
         if mission_section:
             data['mission'] = mission_section.find_next('p').get_text(strip=True)
+        else:
+            data['mission'] = fallback['mission']
+            used_fallback = True
 
         values_section = soup.find('h2', string=re.compile(r'Values|Core', re.I))
         if values_section:
             data['values'] = [li.get_text(strip=True) for li in values_section.find_next('ul').find_all('li')]
+        else:
+            data['values'] = fallback['values']
+            used_fallback = True
 
         facts_section = soup.find('section', class_=re.compile(r'stats|facts|numbers', re.I))
         if facts_section:
@@ -55,6 +63,12 @@ def scrape_jbu_data():
                 if label and value:
                     data['stats'][label] = value
 
+        # Fill in missing stats with fallback
+        for stat_key, stat_value in fallback['stats'].items():
+            if stat_key not in data['stats']:
+                data['stats'][stat_key] = stat_value
+                used_fallback = True
+
         academics_nav = soup.find('nav', id=re.compile(r'academics|programs', re.I))
         if academics_nav:
             for college in academics_nav.find_all('li', class_='menu-item'):
@@ -62,15 +76,16 @@ def scrape_jbu_data():
                 programs = college.find_all('li', class_='menu-item')
                 data['colleges'][name] = len(programs)
 
-        for key in fallback:
-            if not data.get(key):
-                data[key] = fallback[key]
-
-        return dict(data), data is fallback
+        # Fill in missing colleges with fallback
+        if not data['colleges']:
+            data['colleges'] = fallback['colleges']
+            used_fallback = True
 
     except Exception as e:
         st.error(f"Scraping error: {str(e)} - Using fallback data")
-        return fallback
+        return fallback, True
+
+    return dict(data), used_fallback
 
 
 def create_dashboard():
@@ -163,7 +178,7 @@ def create_dashboard():
     st.markdown("---")
 
     if using_fallback:
-        st.warning("⚠️ Showing fallback data (scraping failed or timed out).")
+        st.warning("⚠️ Showing fallback data (scraping failed or partially incomplete).")
     else:
         st.success("✅ Live data successfully loaded from jbu.edu.")
     st.caption(f"Data sourced from jbu.edu | Last updated: {datetime.now().strftime('%B %d, %Y %H:%M')}")
