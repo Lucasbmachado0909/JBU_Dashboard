@@ -557,7 +557,8 @@ def create_dashboard():
         # Adiciona botão para forçar atualização
         if st.button("Force Refresh Data"):
             st.cache_data.clear()
-            st.experimental_rerun()
+            # CORREÇÃO AQUI: Usar st.rerun() em vez de st.experimental_rerun()
+            st.rerun()
     else:
         st.success("✅ Live data successfully loaded from jbu.edu.")
     
