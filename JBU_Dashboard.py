@@ -63,7 +63,6 @@ def scrape_jbu_data():
                 if label and value:
                     data['stats'][label] = value
 
-        # Fill in missing stats with fallback
         for stat_key, stat_value in fallback['stats'].items():
             if stat_key not in data['stats']:
                 data['stats'][stat_key] = stat_value
@@ -76,7 +75,6 @@ def scrape_jbu_data():
                 programs = college.find_all('li', class_='menu-item')
                 data['colleges'][name] = len(programs)
 
-        # Fill in missing colleges with fallback
         if not data['colleges']:
             data['colleges'] = fallback['colleges']
             used_fallback = True
