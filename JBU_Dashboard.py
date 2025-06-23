@@ -62,7 +62,9 @@ def scrape_jbu_data():
                 # Processar o conteúdo com base no título da seção
                 if section_title == "Enrollment":
                     # Extrair estatísticas de matrícula
-                    data['stats']['Total Enrollment'] = content_div.find('strong').get_text(strip=True)
+                    strong_tag = content_div.find('strong')
+                    if strong_tag:
+                        data['stats']['Total Enrollment'] = strong_tag.get_text(strip=True)
                     
                     # Extrair detalhes de matrícula
                     enrollment_details = {}
@@ -226,7 +228,7 @@ def create_dashboard():
         st.markdown('</div>', unsafe_allow_html=True)
 
     # Exibir detalhes de matrícula se disponíveis
-    if 'enrollment_details' in jbu_data:
+    if 'enrollment_details' in jbu_data and jbu_data['enrollment_details']:
         st.header("Enrollment Details")
         enrollment_df = pd.DataFrame({
             'Category': list(jbu_data['enrollment_details'].keys()),
@@ -243,54 +245,86 @@ def create_dashboard():
         st.plotly_chart(fig, use_container_width=True)
 
     # Exibir programas principais se disponíveis
-    if 'top_programs' in jbu_data:
+    if 'top_programs' in jbu_data and jbu_data['top_programs']:
         st.header("Top Undergraduate Programs")
+        
+        # Função segura para extrair números dos valores
+        def safe_extract_number(value):
+            if not value:
+                return 0
+            # Extrair apenas dígitos do valor
+            digits = re.findall(r'\d+', value)
+            if digits:
+                return int(digits[0])
+            return 0
+        
+        # Criar DataFrame com tratamento seguro de valores
         programs_df = pd.DataFrame({
             'Program': list(jbu_data['top_programs'].keys()),
-            'Students': [int(x) for x in jbu_data['top_programs'].values()]
+            'Students': [safe_extract_number(x) for x in jbu_data['top_programs'].values()]
         })
         
-        fig = px.bar(
-            programs_df,
-            x="Program",
-            y="Students",
-            title="Top 5 Undergraduate Programs",
-            color="Program",
-            color_discrete_sequence=px.colors.qualitative.Pastel
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        # Verificar se temos dados válidos para exibir
+        if not programs_df.empty and programs_df['Students'].sum() > 0:
+            fig = px.bar(
+                programs_df,
+                x="Program",
+                y="Students",
+                title="Top 5 Undergraduate Programs",
+                color="Program",
+                color_discrete_sequence=px.colors.qualitative.Pastel
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No detailed program data available to display.")
 
     # Exibir estados de origem se disponíveis
-    if 'top_states' in jbu_data:
+    if 'top_states' in jbu_data and jbu_data['top_states']:
         st.header("Geographic Distribution")
         col1, col2 = st.columns(2)
         
         with col1:
+            # Função segura para extrair números dos valores
+            def safe_extract_number(value):
+                if not value:
+                    return 0
+                # Extrair apenas dígitos do valor
+                digits = re.findall(r'\d+', value)
+                if digits:
+                    return int(digits[0])
+                return 0
+            
+            # Criar DataFrame com tratamento seguro de valores
             states_df = pd.DataFrame({
                 'State': list(jbu_data['top_states'].keys()),
-                'Students': [int(x) for x in jbu_data['top_states'].values()]
+                'Students': [safe_extract_number(x) for x in jbu_data['top_states'].values()]
             })
             
-            fig = px.bar(
-                states_df,
-                x="State",
-                y="Students",
-                title="Top 10 Home States",
-                color="State",
-                color_discrete_sequence=px.colors.qualitative.Pastel
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            # Verificar se temos dados válidos para exibir
+            if not states_df.empty and states_df['Students'].sum() > 0:
+                fig = px.bar(
+                    states_df,
+                    x="State",
+                    y="Students",
+                    title="Top 10 Home States",
+                    color="State",
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No detailed state data available to display.")
         
         with col2:
-            if 'countries' in jbu_data:
+            if 'countries' in jbu_data and jbu_data['countries'].get('by_citizenship'):
                 countries = jbu_data['countries']['by_citizenship'][:5]  # Top 5 countries
-                countries_df = pd.DataFrame({
-                    'Country': countries,
-                    'Rank': list(range(1, len(countries) + 1))
-                })
-                
-                st.subheader("Top Countries by Citizenship")
-                st.table(countries_df)
+                if countries:
+                    countries_df = pd.DataFrame({
+                        'Country': countries,
+                        'Rank': list(range(1, len(countries) + 1))
+                    })
+                    
+                    st.subheader("Top Countries by Citizenship")
+                    st.table(countries_df)
 
     st.header("Mission & Values")
     with st.expander("View Institutional Statements"):
