@@ -9,7 +9,6 @@ from datetime import datetime
 
 @st.cache_data(ttl=3600)
 def scrape_jbu_data():
-    # URL correta para a página de fatos
     url = "https://www.jbu.edu/about/facts/"
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -47,26 +46,19 @@ def scrape_jbu_data():
         
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Extrair estatísticas da página de fatos
-        # A página usa divs com classe "collapsible" para títulos e "content" para conteúdo
         collapsibles = soup.find_all('div', class_='collapsible')
         
         for collapsible in collapsibles:
-            # Obter o título da seção
             section_title = collapsible.get_text(strip=True)
             
-            # Obter o conteúdo correspondente (próximo elemento irmão com classe "content")
             content_div = collapsible.find_next_sibling('div', class_='content')
             
             if content_div:
-                # Processar o conteúdo com base no título da seção
                 if section_title == "Enrollment":
-                    # Extrair estatísticas de matrícula
                     strong_tag = content_div.find('strong')
                     if strong_tag:
                         data['stats']['Total Enrollment'] = strong_tag.get_text(strip=True)
                     
-                    # Extrair detalhes de matrícula
                     enrollment_details = {}
                     for span in content_div.find_all('span'):
                         text = span.get_text(strip=True)
@@ -77,7 +69,6 @@ def scrape_jbu_data():
                     data['enrollment_details'] = enrollment_details
                 
                 elif section_title == "Top 5 Undergrad Programs":
-                    # Extrair programas de graduação
                     programs = {}
                     for span in content_div.find_all('span'):
                         text = span.get_text(strip=True)
@@ -88,16 +79,13 @@ def scrape_jbu_data():
                     data['top_programs'] = programs
                 
                 elif section_title == "Faculty":
-                    # Extrair informações sobre o corpo docente
                     faculty_text = content_div.get_text(strip=True)
                     
-                    # Extrair a proporção aluno/professor
                     ratio_match = re.search(r'Student/Faculty Ratio – (\d+:\d+)', faculty_text)
                     if ratio_match:
                         data['stats']['Student-Faculty Ratio'] = ratio_match.group(1)
                 
                 elif section_title == "Program Offerings":
-                    # Extrair ofertas de programas
                     program_offerings = {}
                     for span in content_div.find_all('span'):
                         text = span.get_text(strip=True)
@@ -107,21 +95,18 @@ def scrape_jbu_data():
                     
                     data['program_offerings'] = program_offerings
                     
-                    # Atualizar estatísticas
                     if 'Undergraduate Majors' in program_offerings:
                         data['stats']['Undergraduate Programs'] = program_offerings['Undergraduate Majors']
                     if 'Graduate Degree Programs' in program_offerings:
                         data['stats']['Graduate Programs'] = program_offerings['Graduate Degree Programs']
                 
                 elif section_title == "Class Size":
-                    # Extrair tamanho médio da turma
                     size_text = content_div.get_text(strip=True)
                     size_match = re.search(r'average class size is (\d+)', size_text, re.IGNORECASE)
                     if size_match:
                         data['stats']['Average Class Size'] = size_match.group(1)
                 
                 elif section_title == "Top 10 Home States":
-                    # Extrair estados de origem
                     states = {}
                     for li in content_div.find_all('li'):
                         text = li.get_text(strip=True)
@@ -132,11 +117,9 @@ def scrape_jbu_data():
                     data['top_states'] = states
                 
                 elif section_title == "Top Countries":
-                    # Extrair países de origem
                     countries_by_citizenship = []
                     countries_by_residence = []
                     
-                    # Encontrar os cabeçalhos h4
                     h4_elements = content_div.find_all('h4')
                     
                     for h4 in h4_elements:
@@ -156,7 +139,6 @@ def scrape_jbu_data():
                         'by_residence': countries_by_residence
                     }
 
-        # Se não conseguimos extrair informações suficientes, usar fallback
         if not data['stats']:
             data['stats'] = fallback['stats']
             used_fallback = True
@@ -167,7 +149,6 @@ def scrape_jbu_data():
             used_fallback = True
             print("Using fallback colleges data")
         
-        # Missão e valores podem não estar na página de fatos, então usamos fallback
         data['mission'] = fallback['mission']
         data['values'] = fallback['values']
 
@@ -227,7 +208,6 @@ def create_dashboard():
         st.metric("Graduate Programs", stats.get('Graduate Programs', '18'))
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Exibir detalhes de matrícula se disponíveis
     if 'enrollment_details' in jbu_data and jbu_data['enrollment_details']:
         st.header("Enrollment Details")
         enrollment_df = pd.DataFrame({
@@ -244,27 +224,22 @@ def create_dashboard():
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # Exibir programas principais se disponíveis
     if 'top_programs' in jbu_data and jbu_data['top_programs']:
         st.header("Top Undergraduate Programs")
         
-        # Função segura para extrair números dos valores
         def safe_extract_number(value):
             if not value:
                 return 0
-            # Extrair apenas dígitos do valor
             digits = re.findall(r'\d+', value)
             if digits:
                 return int(digits[0])
             return 0
         
-        # Criar DataFrame com tratamento seguro de valores
         programs_df = pd.DataFrame({
             'Program': list(jbu_data['top_programs'].keys()),
             'Students': [safe_extract_number(x) for x in jbu_data['top_programs'].values()]
         })
         
-        # Verificar se temos dados válidos para exibir
         if not programs_df.empty and programs_df['Students'].sum() > 0:
             fig = px.bar(
                 programs_df,
@@ -278,29 +253,24 @@ def create_dashboard():
         else:
             st.info("No detailed program data available to display.")
 
-    # Exibir estados de origem se disponíveis
     if 'top_states' in jbu_data and jbu_data['top_states']:
         st.header("Geographic Distribution")
         col1, col2 = st.columns(2)
         
         with col1:
-            # Função segura para extrair números dos valores
             def safe_extract_number(value):
                 if not value:
                     return 0
-                # Extrair apenas dígitos do valor
                 digits = re.findall(r'\d+', value)
                 if digits:
                     return int(digits[0])
                 return 0
             
-            # Criar DataFrame com tratamento seguro de valores
             states_df = pd.DataFrame({
                 'State': list(jbu_data['top_states'].keys()),
                 'Students': [safe_extract_number(x) for x in jbu_data['top_states'].values()]
             })
             
-            # Verificar se temos dados válidos para exibir
             if not states_df.empty and states_df['Students'].sum() > 0:
                 fig = px.bar(
                     states_df,
@@ -316,7 +286,7 @@ def create_dashboard():
         
         with col2:
             if 'countries' in jbu_data and jbu_data['countries'].get('by_citizenship'):
-                countries = jbu_data['countries']['by_citizenship'][:5]  # Top 5 countries
+                countries = jbu_data['countries']['by_citizenship'][:5]  
                 if countries:
                     countries_df = pd.DataFrame({
                         'Country': countries,
