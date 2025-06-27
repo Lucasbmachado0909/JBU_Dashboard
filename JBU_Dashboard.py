@@ -158,6 +158,84 @@ def scrape_jbu_data():
 
     return dict(data), used_fallback
 
+@st.cache_data(ttl=3600)
+def scrape_jbu_faculty_data():
+    url = "https://www.jbu.edu/faculty/"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
+    faculty_data = {
+        'faculty_count': 0,
+        'departments': {},
+        'faculty_list': []
+    }
+    
+    try:
+        print(f"Requesting faculty URL: {url}")
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        faculty_links = soup.find_all('a', class_='jbu-faculty-profile-link')
+        
+        faculty_data['faculty_count'] = len(faculty_links)
+        departments = {}
+        faculty_list = []
+        
+        for faculty_link in faculty_links:
+            faculty_info = {}
+            
+            name_elem = faculty_link.find('h3', class_='jbu-font-size-24')
+            if name_elem:
+                faculty_info['name'] = name_elem.get_text(strip=True)
+            
+            title_elem = faculty_link.find('div', class_='jbu-faculty-profile-title')
+            if title_elem:
+                title = title_elem.get_text(strip=True)
+                faculty_info['title'] = title
+                
+                department = None
+                if "Professor of" in title:
+                    dept_match = re.search(r'Professor of\s+([^;]+)', title)
+                    if dept_match:
+                        department = dept_match.group(1).strip()
+                elif "Department Chair" in title:
+                    dept_match = re.search(r'Department Chair,\s+([^;]+)', title)
+                    if dept_match:
+                        department = dept_match.group(1).strip()
+                
+                if department:
+                    faculty_info['department'] = department
+                    
+                    if department in departments:
+                        departments[department] += 1
+                    else:
+                        departments[department] = 1
+            
+            profile_url = faculty_link.get('href')
+            if profile_url:
+                faculty_info['profile_url'] = profile_url
+            
+            img_elem = faculty_link.find('img')
+            if img_elem:
+                img_src = img_elem.get('data-src')
+                if img_src:
+                    faculty_info['image_url'] = img_src
+            
+            if faculty_info:
+                faculty_list.append(faculty_info)
+        
+        faculty_data['departments'] = departments
+        faculty_data['faculty_list'] = faculty_list
+        
+    except Exception as e:
+        print(f"Faculty scraping error: {str(e)}")
+        return None
+    
+    return faculty_data
+
 
 def create_dashboard():
     st.set_page_config(
@@ -175,6 +253,17 @@ def create_dashboard():
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         background-color: var(--background-color);
         color: var(--text-color);
+    }
+    .faculty-card {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .faculty-image {
+        width: 100%;
+        border-radius: 5px;
+        margin-bottom: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -235,7 +324,7 @@ def create_dashboard():
                 return int(digits[0])
             return 0
         
-        programs_df = pd.DataFrame({
+                programs_df = pd.DataFrame({
             'Program': list(jbu_data['top_programs'].keys()),
             'Students': [safe_extract_number(x) for x in jbu_data['top_programs'].values()]
         })
@@ -295,6 +384,94 @@ def create_dashboard():
                     
                     st.subheader("Top Countries by Citizenship")
                     st.table(countries_df)
+
+    # Nova seção para dados de professores
+    st.header("Faculty & Staff")
+    
+    # Obter dados de professores
+    faculty_data = scrape_jbu_faculty_data()
+    
+    if faculty_data:
+        # Mostrar contagem total de professores
+        st.subheader(f"Total Faculty Members: {faculty_data['faculty_count']}")
+        
+        # Visualização da distribuição por departamento
+        if faculty_data['departments']:
+            # Filtrar departamentos com pelo menos 2 professores para melhor visualização
+            filtered_departments = {k: v for k, v in faculty_data['departments'].items() if v >= 2}
+            
+            if filtered_departments:
+                dept_df = pd.DataFrame({
+                    'Department': list(filtered_departments.keys()),
+                    'Faculty Count': list(filtered_departments.values())
+                })
+                
+                # Ordenar por contagem (do maior para o menor)
+                dept_df = dept_df.sort_values('Faculty Count', ascending=False)
+                
+                fig = px.bar(
+                    dept_df,
+                    x='Department',
+                    y='Faculty Count',
+                    title='Faculty Distribution by Department',
+                    color='Department',
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        
+        # Tabela de professores pesquisável
+        st.subheader("Faculty Directory")
+        
+        # Adicionar campo de pesquisa
+        search_term = st.text_input("Search faculty by name or department:")
+        
+        # Filtrar a lista de professores com base no termo de pesquisa
+        filtered_faculty = faculty_data['faculty_list']
+        if search_term:
+            search_term = search_term.lower()
+            filtered_faculty = [
+                f for f in faculty_data['faculty_list'] 
+                if search_term in f.get('name', '').lower() or 
+                   (f.get('department') and search_term in f.get('department', '').lower()) or
+                   search_term in f.get('title', '').lower()
+            ]
+        
+        # Mostrar os resultados em formato de tabela
+        if filtered_faculty:
+            # Criar tabela para visualização
+            faculty_table = []
+            for f in filtered_faculty:
+                faculty_table.append({
+                    'Name': f.get('name', ''),
+                    'Title': f.get('title', ''),
+                    'Department': f.get('department', 'N/A')
+                })
+            
+            st.dataframe(pd.DataFrame(faculty_table))
+            
+            # Mostrar visualização em cards para os primeiros 9 professores
+            st.subheader("Featured Faculty")
+            
+            # Dividir em 3 colunas
+            cols = st.columns(3)
+            
+            # Limitar a 9 professores para não sobrecarregar a página
+            display_faculty = filtered_faculty[:9]
+            
+            for i, faculty in enumerate(display_faculty):
+                with cols[i % 3]:
+                    st.markdown(f"""
+                    <div class="faculty-card">
+                        <img src="{faculty.get('image_url', 'https://f.hubspotusercontent30.net/hubfs/19902035/faculty/Avatar.png')}" 
+                             class="faculty-image" alt="{faculty.get('name', '')}">
+                        <h4>{faculty.get('name', '')}</h4>
+                        <p><em>{faculty.get('title', '')}</em></p>
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
+            st.info("No faculty members found matching your search criteria.")
+    else:
+        st.warning("⚠️ Faculty data could not be loaded. Please try again later.")
 
     st.header("Mission & Values")
     with st.expander("View Institutional Statements"):
