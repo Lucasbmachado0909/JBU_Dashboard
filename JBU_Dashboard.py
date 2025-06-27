@@ -270,17 +270,14 @@ def create_dashboard():
         st.markdown('</div>', unsafe_allow_html=True)
 
     with cols[1]:
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
         st.metric("Student-Faculty Ratio", stats.get('Student-Faculty Ratio', '14:1'))
         st.markdown('</div>', unsafe_allow_html=True)
 
     with cols[2]:
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
         st.metric("Undergraduate Programs", stats.get('Undergraduate Programs', '50+'))
         st.markdown('</div>', unsafe_allow_html=True)
 
     with cols[3]:
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
         st.metric("Graduate Programs", stats.get('Graduate Programs', '18'))
         st.markdown('</div>', unsafe_allow_html=True)
 
