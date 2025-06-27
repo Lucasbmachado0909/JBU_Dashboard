@@ -324,7 +324,7 @@ def create_dashboard():
                 return int(digits[0])
             return 0
         
-                programs_df = pd.DataFrame({
+        programs_df = pd.DataFrame({
             'Program': list(jbu_data['top_programs'].keys()),
             'Students': [safe_extract_number(x) for x in jbu_data['top_programs'].values()]
         })
