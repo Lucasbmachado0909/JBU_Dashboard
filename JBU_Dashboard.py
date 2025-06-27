@@ -244,15 +244,52 @@ def create_dashboard():
         layout="wide"
     )
 
-    # Estilo para as métricas
+    # Estilo para as métricas e texto em azul
     st.markdown("""
     <style>
-    .metric-box {
-        background-color: white;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* Cor de texto azul para todo o dashboard */
+    .st-emotion-cache-nahz7x {
+        color: #003366;
+    }
+    
+    /* Cor de texto azul para cabeçalhos */
+    h1, h2, h3, h4, h5, h6 {
+        color: #003366 !important;
+    }
+    
+    /* Cor de texto azul para métricas */
+    [data-testid="stMetricLabel"] {
+        color: #003366 !important;
+    }
+    
+    [data-testid="stMetricValue"] {
+        color: #003366 !important;
+        font-weight: bold;
+    }
+    
+    /* Estilo para links */
+    a {
+        color: #0066cc !important;
+    }
+    
+    /* Estilo para texto normal */
+    p, li, span, div {
+        color: #003366;
+    }
+    
+    /* Estilo para tabelas */
+    .dataframe {
+        color: #003366;
+    }
+    
+    /* Estilo para o botão de expandir */
+    .st-emotion-cache-1gulkj5 {
+        color: #003366 !important;
+    }
+    
+    /* Estilo para caixas de informação */
+    .st-emotion-cache-16idsys p {
+        color: #003366;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -291,7 +328,8 @@ def create_dashboard():
             names="Category",
             values="Count",
             title="Enrollment Distribution",
-            hole=0.3
+            hole=0.3,
+            color_discrete_sequence=px.colors.sequential.Blues_r  # Usando tons de azul
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -346,7 +384,7 @@ def create_dashboard():
                     y='Faculty Count',
                     title=chart_title,
                     color='Department',
-                    color_discrete_sequence=px.colors.qualitative.Pastel
+                    color_discrete_sequence=px.colors.sequential.Blues  # Usando tons de azul
                 )
                 
                 # Ajustar layout para melhor legibilidade
@@ -362,8 +400,8 @@ def create_dashboard():
         # Adicionar link para a página completa de Faculty & Staff
         st.markdown("""
         <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
-            <p style="margin-bottom: 10px;">If you want to see all the faculty staff, click on the link below:</p>
-            <a href="https://www.jbu.edu/faculty/" style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
+            <p style="margin-bottom: 10px; color: #003366;">If you want to see all the faculty staff, click on the link below:</p>
+            <a href="https://www.jbu.edu/faculty/" style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white !important; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -372,8 +410,8 @@ def create_dashboard():
         # Mesmo assim, fornecer o link para a página oficial
         st.markdown("""
         <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
-            <p style="margin-bottom: 10px;">Visit the official JBU faculty page for complete information:</p>
-            <a href="https://www.jbu.edu/faculty/" style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
+            <p style="margin-bottom: 10px; color: #003366;">Visit the official JBU faculty page for complete information:</p>
+            <a href="https://www.jbu.edu/faculty/" style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white !important; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
         </div>
         """, unsafe_allow_html=True)
 
@@ -400,7 +438,7 @@ def create_dashboard():
                 y="Students",
                 title="Top 5 Undergraduate Programs",
                 color="Program",
-                color_discrete_sequence=px.colors.qualitative.Pastel
+                color_discrete_sequence=px.colors.sequential.Blues  # Usando tons de azul
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
@@ -431,7 +469,7 @@ def create_dashboard():
                     y="Students",
                     title="Top 10 Home States",
                     color="State",
-                    color_discrete_sequence=px.colors.qualitative.Pastel
+                    color_discrete_sequence=px.colors.sequential.Blues  # Usando tons de azul
                 )
                 st.plotly_chart(fig, use_container_width=True)
             else:
