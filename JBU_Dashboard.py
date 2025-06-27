@@ -243,8 +243,7 @@ def create_dashboard():
         page_icon=":mortar_board:",
         layout="wide"
     )
-
-    # Aplicando estilo global para texto azul
+    
     st.markdown("""
     <style>
     /* Aplicando cor azul a todos os elementos de texto */
@@ -290,17 +289,14 @@ def create_dashboard():
     </style>
     """, unsafe_allow_html=True)
 
-    # Título com cor azul explícita
     st.markdown('<h1 style="color: #003366;">John Brown University Institutional Dashboard</h1>', unsafe_allow_html=True)
     st.markdown("---")
 
-    # Cabeçalho com cor azul explícita
     st.markdown('<h2 style="color: #003366;">University Overview</h2>', unsafe_allow_html=True)
     
     cols = st.columns(4)
     stats = jbu_data.get('stats', {})
 
-    # Métricas com rótulos coloridos manualmente
     with cols[0]:
         st.markdown('<div style="color: #003366; font-weight: bold;">Total Enrollment</div>', unsafe_allow_html=True)
         st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{stats.get("Total Enrollment", "2,343")}</div>', unsafe_allow_html=True)
@@ -324,7 +320,6 @@ def create_dashboard():
             'Count': list(jbu_data['enrollment_details'].values())
         })
         
-        # Cores mais escuras e vibrantes para o gráfico de pizza
         dark_blues = ['#001f3f', '#003366', '#004080', '#0059b3', '#0066cc', '#0074D9']
         
         fig = px.pie(
@@ -333,28 +328,23 @@ def create_dashboard():
             values="Count",
             title="Enrollment Distribution",
             hole=0.3,
-            color_discrete_sequence=dark_blues  # Usando tons de azul mais escuros
+            color_discrete_sequence=dark_blues 
         )
-        # Definindo cor do título do gráfico e adicionando bordas
         fig.update_layout(
             title_font=dict(color="#003366"),
             font=dict(color="#003366")
         )
-        # Adicionando bordas e contorno para melhor visualização
         fig.update_traces(
             marker=dict(line=dict(color='#FFFFFF', width=2)),
             textfont_color='white'
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # Seção Faculty & Staff
     st.markdown('<h2 style="color: #003366;">Faculty & Staff</h2>', unsafe_allow_html=True)
     
-    # Obter dados de professores
     faculty_data = scrape_jbu_faculty_data()
     
     if faculty_data:
-        # Mostrar métricas principais em cards consistentes
         faculty_metrics = st.columns(3)
         
         with faculty_metrics[0]:
@@ -366,17 +356,14 @@ def create_dashboard():
             st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{len(faculty_data["departments"])}</div>', unsafe_allow_html=True)
         
         with faculty_metrics[2]:
-            # Calcular o departamento com mais professores
             if faculty_data['departments']:
                 largest_dept = max(faculty_data['departments'].items(), key=lambda x: x[1])
                 st.markdown('<div style="color: #003366; font-weight: bold;">Largest Department</div>', unsafe_allow_html=True)
                 st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{largest_dept[0]} ({largest_dept[1]})</div>', unsafe_allow_html=True)
         
-        # Visualização da distribuição por departamento
         if faculty_data['departments']:
             st.markdown('<h3 style="color: #003366;">Faculty Distribution by Department</h3>', unsafe_allow_html=True)
             
-            # Filtrar departamentos com pelo menos 2 professores para melhor visualização
             filtered_departments = {k: v for k, v in faculty_data['departments'].items() if v >= 2}
             
             if filtered_departments:
@@ -385,17 +372,14 @@ def create_dashboard():
                     'Faculty Count': list(filtered_departments.values())
                 })
                 
-                # Ordenar por contagem (do maior para o menor)
                 dept_df = dept_df.sort_values('Faculty Count', ascending=False)
                 
-                # Limitar a 10 departamentos para melhor visualização
                 if len(dept_df) > 10:
                     dept_df = dept_df.head(10)
                     chart_title = "Top 10 Departments by Faculty Count"
                 else:
                     chart_title = "Faculty Distribution by Department"
                 
-                # Cores mais escuras para o gráfico de barras
                 dept_colors = ['#001f3f', '#003366', '#004080', '#0059b3', '#0066cc', '#0074D9', 
                               '#0080ff', '#3399ff', '#4da6ff', '#66b3ff']
                 
@@ -405,10 +389,9 @@ def create_dashboard():
                     y='Faculty Count',
                     title=chart_title,
                     color='Department',
-                    color_discrete_sequence=dept_colors  # Usando tons de azul mais escuros
+                    color_discrete_sequence=dept_colors  
                 )
                 
-                # Ajustar layout para melhor legibilidade e cor azul
                 fig.update_layout(
                     xaxis_title="",
                     yaxis_title="Number of Faculty",
@@ -416,19 +399,17 @@ def create_dashboard():
                     margin=dict(l=20, r=20, t=40, b=20),
                     title_font=dict(color="#003366"),
                     font=dict(color="#003366"),
-                    plot_bgcolor='rgba(240,240,240,0.5)'  # Fundo cinza claro para melhor contraste
+                    plot_bgcolor='rgba(240,240,240,0.5)' 
                 )
                 
-                # Adicionar bordas às barras para melhor visualização
                 fig.update_traces(
                     marker_line_color='white',
                     marker_line_width=1.5,
-                    opacity=1.0  # Opacidade total para cores mais vivas
+                    opacity=1.0 
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
         
-        # Adicionar link para a página completa de Faculty & Staff
         st.markdown("""
         <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
             <p style="margin-bottom: 10px; color: #003366; font-weight: bold;">If you want to see all the faculty staff, click on the link below:</p>
@@ -438,7 +419,6 @@ def create_dashboard():
     else:
         st.warning("⚠️ Faculty data could not be loaded. Please try again later.")
         
-        # Mesmo assim, fornecer o link para a página oficial
         st.markdown("""
         <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
             <p style="margin-bottom: 10px; color: #003366; font-weight: bold;">Visit the official JBU faculty page for complete information:</p>
@@ -463,7 +443,6 @@ def create_dashboard():
         })
         
         if not programs_df.empty and programs_df['Students'].sum() > 0:
-            # Cores mais escuras e vibrantes para o gráfico de barras
             program_colors = ['#001f3f', '#003366', '#004080', '#0059b3', '#0066cc']
             
             fig = px.bar(
@@ -472,20 +451,17 @@ def create_dashboard():
                 y="Students",
                 title="Top 5 Undergraduate Programs",
                 color="Program",
-                color_discrete_sequence=program_colors  # Usando tons de azul mais escuros
+                color_discrete_sequence=program_colors  
             )
-            # Definindo cor do título e texto do gráfico
             fig.update_layout(
                 title_font=dict(color="#003366"),
                 font=dict(color="#003366"),
-                plot_bgcolor='rgba(240,240,240,0.5)'  # Fundo cinza claro para melhor contraste
-            )
+                plot_bgcolor='rgba(240,240,240,0.5)' 
             
-            # Adicionar bordas às barras para melhor visualização
             fig.update_traces(
                 marker_line_color='white',
                 marker_line_width=1.5,
-                opacity=1.0  # Opacidade total para cores mais vivas
+                opacity=1.0 
             )
             
             st.plotly_chart(fig, use_container_width=True)
@@ -511,7 +487,6 @@ def create_dashboard():
             })
             
             if not states_df.empty and states_df['Students'].sum() > 0:
-                # Cores mais escuras para o gráfico de barras
                 state_colors = ['#001f3f', '#00264d', '#003366', '#004080', '#004d99', 
                                '#0059b3', '#0066cc', '#0074D9', '#0080ff', '#1a8cff']
                 
@@ -521,20 +496,18 @@ def create_dashboard():
                     y="Students",
                     title="Top 10 Home States",
                     color="State",
-                    color_discrete_sequence=state_colors  # Usando tons de azul mais escuros
+                    color_discrete_sequence=state_colors  
                 )
-                # Definindo cor do título e texto do gráfico
                 fig.update_layout(
                     title_font=dict(color="#003366"),
                     font=dict(color="#003366"),
-                    plot_bgcolor='rgba(240,240,240,0.5)'  # Fundo cinza claro para melhor contraste
+                    plot_bgcolor='rgba(240,240,240,0.5)' 
                 )
                 
-                # Adicionar bordas às barras para melhor visualização
                 fig.update_traces(
                     marker_line_color='white',
                     marker_line_width=1.5,
-                    opacity=1.0  # Opacidade total para cores mais vivas
+                    opacity=1.0 
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
@@ -551,7 +524,7 @@ def create_dashboard():
                     })
                     
                     st.markdown('<h3 style="color: #003366;">Top Countries by Citizenship</h3>', unsafe_allow_html=True)
-                    # Aplicando estilo à tabela para texto azul
+                    
                     st.markdown(
                         countries_df.style.set_properties(**{'color': '#003366'})
                         .to_html(), unsafe_allow_html=True
