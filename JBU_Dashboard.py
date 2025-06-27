@@ -457,7 +457,7 @@ def create_dashboard():
                 title_font=dict(color="#003366"),
                 font=dict(color="#003366"),
                 plot_bgcolor='rgba(240,240,240,0.5)' 
-            
+            )
             fig.update_traces(
                 marker_line_color='white',
                 marker_line_width=1.5,
