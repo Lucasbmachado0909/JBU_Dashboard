@@ -253,18 +253,6 @@ def create_dashboard():
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         background-color: var(--background-color);
         color: var(--text-color);
-    }
-    .faculty-card {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 10px;
-        margin-bottom: 10px;
-    }
-    .faculty-image {
-        width: 100%;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -278,7 +266,6 @@ def create_dashboard():
     stats = jbu_data.get('stats', {})
 
     with cols[0]:
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
         st.metric("Total Enrollment", stats.get('Total Enrollment', '2,343'))
         st.markdown('</div>', unsafe_allow_html=True)
 
