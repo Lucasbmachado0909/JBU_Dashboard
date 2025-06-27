@@ -386,93 +386,224 @@ def create_dashboard():
                     st.table(countries_df)
 
     # Nova seção para dados de professores
-    st.header("Faculty & Staff")
+   # Seção Faculty & Staff
+st.header("Faculty & Staff")
     
-    # Obter dados de professores
-    faculty_data = scrape_jbu_faculty_data()
+# Obter dados de professores
+faculty_data = scrape_jbu_faculty_data()
     
-    if faculty_data:
-        # Mostrar contagem total de professores
-        st.subheader(f"Total Faculty Members: {faculty_data['faculty_count']}")
-        
-        # Visualização da distribuição por departamento
+if faculty_data:
+    # Mostrar métricas principais em cards consistentes
+    faculty_metrics = st.columns(3)
+    
+    with faculty_metrics[0]:
+        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+        st.metric("Total Faculty", faculty_data['faculty_count'])
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with faculty_metrics[1]:
+        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+        st.metric("Academic Departments", len(faculty_data['departments']))
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with faculty_metrics[2]:
+        # Calcular o departamento com mais professores
         if faculty_data['departments']:
-            # Filtrar departamentos com pelo menos 2 professores para melhor visualização
-            filtered_departments = {k: v for k, v in faculty_data['departments'].items() if v >= 2}
+            largest_dept = max(faculty_data['departments'].items(), key=lambda x: x[1])
+            st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+            st.metric("Largest Department", f"{largest_dept[0]} ({largest_dept[1]})")
+            st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Visualização da distribuição por departamento
+    if faculty_data['departments']:
+        st.subheader("Faculty Distribution by Department")
+        
+        # Filtrar departamentos com pelo menos 2 professores para melhor visualização
+        filtered_departments = {k: v for k, v in faculty_data['departments'].items() if v >= 2}
+        
+        if filtered_departments:
+            dept_df = pd.DataFrame({
+                'Department': list(filtered_departments.keys()),
+                'Faculty Count': list(filtered_departments.values())
+            })
             
-            if filtered_departments:
-                dept_df = pd.DataFrame({
-                    'Department': list(filtered_departments.keys()),
-                    'Faculty Count': list(filtered_departments.values())
-                })
+            # Ordenar por contagem (do maior para o menor)
+            dept_df = dept_df.sort_values('Faculty Count', ascending=False)
+            
+            # Limitar a 10 departamentos para melhor visualização
+            if len(dept_df) > 10:
+                dept_df = dept_df.head(10)
+                chart_title = "Top 10 Departments by Faculty Count"
+            else:
+                chart_title = "Faculty Distribution by Department"
+            
+            fig = px.bar(
+                dept_df,
+                x='Department',
+                y='Faculty Count',
+                title=chart_title,
+                color='Department',
+                color_discrete_sequence=px.colors.qualitative.Pastel
+            )
+            
+            # Ajustar layout para melhor legibilidade
+            fig.update_layout(
+                xaxis_title="",
+                yaxis_title="Number of Faculty",
+                xaxis={'categoryorder':'total descending'},
+                margin=dict(l=20, r=20, t=40, b=20),
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Diretório de professores pesquisável e filtrável
+    st.subheader("Faculty Directory")
+    
+    # Criar lista de departamentos para filtro
+    departments = ['All Departments'] + sorted(list(faculty_data['departments'].keys()))
+    
+    # Layout de 2 colunas para os filtros
+    filter_cols = st.columns([2, 3])
+    
+    with filter_cols[0]:
+        selected_dept = st.selectbox("Filter by Department:", departments)
+    
+    with filter_cols[1]:
+        search_term = st.text_input("Search by name, title or keyword:")
+    
+    # Filtrar a lista de professores com base nos critérios
+    filtered_faculty = faculty_data['faculty_list']
+    
+    # Aplicar filtro de departamento
+    if selected_dept != 'All Departments':
+        filtered_faculty = [
+            f for f in filtered_faculty 
+            if f.get('department') and selected_dept in f.get('department', '')
+        ]
+    
+    # Aplicar filtro de pesquisa
+    if search_term:
+        search_term = search_term.lower()
+        filtered_faculty = [
+            f for f in filtered_faculty 
+            if search_term in f.get('name', '').lower() or 
+               (f.get('department') and search_term in f.get('department', '').lower()) or
+               search_term in f.get('title', '').lower()
+        ]
+    
+    # Mostrar os resultados em formato de tabela
+    if filtered_faculty:
+        # Criar tabela para visualização
+        faculty_table = []
+        for f in filtered_faculty:
+            faculty_table.append({
+                'Name': f.get('name', ''),
+                'Title': f.get('title', ''),
+                'Department': f.get('department', 'N/A'),
+                'Profile': f.get('profile_url', '#')
+            })
+        
+        # Converter para DataFrame e exibir
+        faculty_df = pd.DataFrame(faculty_table)
+        
+        # Adicionar link para perfil
+        def make_clickable(val):
+            if val and val != '#':
+                return f'<a href="{val}" >View Profile</a>'
+            return ''
+        
+        # Aplicar formatação e exibir
+        st.dataframe(
+            faculty_df.style.format({
+                'Profile': make_clickable
+            }),
+            column_config={
+                "Profile": st.column_config.LinkColumn("Profile")
+            },
+            hide_index=True
+        )
+        
+        # Mostrar visualização em cards para os professores em destaque
+        st.subheader("Featured Faculty")
+        
+        # Adicionar CSS personalizado para os cards
+        st.markdown("""
+        <style>
+        .faculty-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: 100%;
+            transition: transform 0.2s;
+        }
+        .faculty-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .faculty-image {
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+        .faculty-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #003366;
+        }
+        .faculty-title {
+            font-style: italic;
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        .faculty-dept {
+            font-size: 0.85em;
+            color: #777;
+        }
+        .faculty-link {
+            margin-top: 10px;
+            display: inline-block;
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Dividir em 3 colunas
+        cols = st.columns(3)
+        
+        # Limitar a 9 professores para não sobrecarregar a página
+        display_faculty = filtered_faculty[:9]
+        
+        for i, faculty in enumerate(display_faculty):
+            with cols[i % 3]:
+                profile_link = faculty.get('profile_url', '#')
+                profile_link_html = f'<a href="{profile_link}"  class="faculty-link">View Full Profile</a>' if profile_link != '#' else ''
                 
-                # Ordenar por contagem (do maior para o menor)
-                dept_df = dept_df.sort_values('Faculty Count', ascending=False)
+                department = faculty.get('department', '')
+                dept_html = f'<div class="faculty-dept">{department}</div>' if department else ''
                 
-                fig = px.bar(
-                    dept_df,
-                    x='Department',
-                    y='Faculty Count',
-                    title='Faculty Distribution by Department',
-                    color='Department',
-                    color_discrete_sequence=px.colors.qualitative.Pastel
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        
-        # Tabela de professores pesquisável
-        st.subheader("Faculty Directory")
-        
-        # Adicionar campo de pesquisa
-        search_term = st.text_input("Search faculty by name or department:")
-        
-        # Filtrar a lista de professores com base no termo de pesquisa
-        filtered_faculty = faculty_data['faculty_list']
-        if search_term:
-            search_term = search_term.lower()
-            filtered_faculty = [
-                f for f in faculty_data['faculty_list'] 
-                if search_term in f.get('name', '').lower() or 
-                   (f.get('department') and search_term in f.get('department', '').lower()) or
-                   search_term in f.get('title', '').lower()
-            ]
-        
-        # Mostrar os resultados em formato de tabela
-        if filtered_faculty:
-            # Criar tabela para visualização
-            faculty_table = []
-            for f in filtered_faculty:
-                faculty_table.append({
-                    'Name': f.get('name', ''),
-                    'Title': f.get('title', ''),
-                    'Department': f.get('department', 'N/A')
-                })
-            
-            st.dataframe(pd.DataFrame(faculty_table))
-            
-            # Mostrar visualização em cards para os primeiros 9 professores
-            st.subheader("Featured Faculty")
-            
-            # Dividir em 3 colunas
-            cols = st.columns(3)
-            
-            # Limitar a 9 professores para não sobrecarregar a página
-            display_faculty = filtered_faculty[:9]
-            
-            for i, faculty in enumerate(display_faculty):
-                with cols[i % 3]:
-                    st.markdown(f"""
-                    <div class="faculty-card">
-                        <img src="{faculty.get('image_url', 'https://f.hubspotusercontent30.net/hubfs/19902035/faculty/Avatar.png')}" 
-                             class="faculty-image" alt="{faculty.get('name', '')}">
-                        <h4>{faculty.get('name', '')}</h4>
-                        <p><em>{faculty.get('title', '')}</em></p>
-                    </div>
-                    """, unsafe_allow_html=True)
-        else:
-            st.info("No faculty members found matching your search criteria.")
+                st.markdown(f"""
+                <div class="faculty-card">
+                    <img src="{faculty.get('image_url', 'https://f.hubspotusercontent30.net/hubfs/19902035/faculty/Avatar.png')}" 
+                         class="faculty-image" alt="{faculty.get('name', '')}">
+                    <div class="faculty-name">{faculty.get('name', '')}</div>
+                    <div class="faculty-title">{faculty.get('title', '')}</div>
+                    {dept_html}
+                    {profile_link_html}
+                </div>
+                """, unsafe_allow_html=True)
     else:
-        st.warning("⚠️ Faculty data could not be loaded. Please try again later.")
-
+        st.info("No faculty members found matching your search criteria.")
+else:
+    st.warning("⚠️ Faculty data could not be loaded. Please try again later.")
     st.header("Mission & Values")
     with st.expander("View Institutional Statements"):
         st.subheader("Mission Statement")
