@@ -245,16 +245,20 @@ def create_dashboard():
     )
 
     st.markdown("""
-    <style>
-    .metric-box {
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        background-color: var(--background-color);
-        color: var(--text-color);
-    </style>
-    """, unsafe_allow_html=True)
+<style>
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
+    background-color: transparent;
+}
+.metric-box {
+    background-color: white;
+    border-radius: 10px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+""", unsafe_allow_html=True)
+
 
     jbu_data, using_fallback = scrape_jbu_data()
 
@@ -306,24 +310,26 @@ def create_dashboard():
     if faculty_data:
         # Mostrar métricas principais em cards consistentes
         faculty_metrics = st.columns(3)
-        
-        with faculty_metrics[0]:
+
+with faculty_metrics[0]:
+    with st.container():
+        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+        st.metric("Total Faculty", faculty_data['faculty_count'])
+        st.markdown('</div>', unsafe_allow_html=True)
+
+with faculty_metrics[1]:
+    with st.container():
+        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+        st.metric("Academic Departments", len(faculty_data['departments']))
+        st.markdown('</div>', unsafe_allow_html=True)
+
+with faculty_metrics[2]:
+    if faculty_data['departments']:
+        largest_dept = max(faculty_data['departments'].items(), key=lambda x: x[1])
+        with st.container():
             st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-            st.metric("Total Faculty", faculty_data['faculty_count'])
+            st.metric("Largest Department", f"{largest_dept[0]} ({largest_dept[1]})")
             st.markdown('</div>', unsafe_allow_html=True)
-        
-        with faculty_metrics[1]:
-            st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-            st.metric("Academic Departments", len(faculty_data['departments']))
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        with faculty_metrics[2]:
-            # Calcular o departamento com mais professores
-            if faculty_data['departments']:
-                largest_dept = max(faculty_data['departments'].items(), key=lambda x: x[1])
-                st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-                st.metric("Largest Department", f"{largest_dept[0]} ({largest_dept[1]})")
-                st.markdown('</div>', unsafe_allow_html=True)
         
         # Visualização da distribuição por departamento
         if faculty_data['departments']:
@@ -357,7 +363,6 @@ def create_dashboard():
                     color_discrete_sequence=px.colors.qualitative.Pastel
                 )
                 
-                # Ajustar layout para melhor legibilidade
                 fig.update_layout(
                     xaxis_title="",
                     yaxis_title="Number of Faculty",
