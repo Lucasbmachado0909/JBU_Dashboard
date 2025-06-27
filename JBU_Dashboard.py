@@ -324,18 +324,26 @@ def create_dashboard():
             'Count': list(jbu_data['enrollment_details'].values())
         })
         
+        # Cores mais vivas para o gráfico de pizza
+        vibrant_blues = ['#003366', '#004080', '#0059b3', '#0073e6', '#1a8cff', '#3399ff']
+        
         fig = px.pie(
             enrollment_df,
             names="Category",
             values="Count",
             title="Enrollment Distribution",
             hole=0.3,
-            color_discrete_sequence=px.colors.sequential.Blues_r  # Usando tons de azul
+            color_discrete_sequence=vibrant_blues  # Usando tons de azul mais vibrantes
         )
-        # Definindo cor do título do gráfico
+        # Definindo cor do título do gráfico e adicionando bordas
         fig.update_layout(
             title_font=dict(color="#003366"),
             font=dict(color="#003366")
+        )
+        # Adicionando bordas e contorno para melhor visualização
+        fig.update_traces(
+            marker=dict(line=dict(color='#FFFFFF', width=2)),
+            textfont_color='white'
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -387,13 +395,17 @@ def create_dashboard():
                 else:
                     chart_title = "Faculty Distribution by Department"
                 
+                # Cores mais vibrantes para o gráfico de barras
+                dept_colors = ['#003366', '#004080', '#0059b3', '#0073e6', '#1a8cff', '#3399ff', 
+                              '#4da6ff', '#66b3ff', '#80bfff', '#99ccff', '#b3d9ff']
+                
                 fig = px.bar(
                     dept_df,
                     x='Department',
                     y='Faculty Count',
                     title=chart_title,
                     color='Department',
-                    color_discrete_sequence=px.colors.sequential.Blues  # Usando tons de azul
+                    color_discrete_sequence=dept_colors  # Usando tons de azul mais vibrantes
                 )
                 
                 # Ajustar layout para melhor legibilidade e cor azul
@@ -403,7 +415,15 @@ def create_dashboard():
                     xaxis={'categoryorder':'total descending'},
                     margin=dict(l=20, r=20, t=40, b=20),
                     title_font=dict(color="#003366"),
-                    font=dict(color="#003366")
+                    font=dict(color="#003366"),
+                    plot_bgcolor='rgba(240,240,240,0.5)'  # Fundo cinza claro para melhor contraste
+                )
+                
+                # Adicionar bordas às barras para melhor visualização
+                fig.update_traces(
+                    marker_line_color='white',
+                    marker_line_width=1.5,
+                    opacity=0.9
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
@@ -443,19 +463,31 @@ def create_dashboard():
         })
         
         if not programs_df.empty and programs_df['Students'].sum() > 0:
+            # Cores mais vibrantes para o gráfico de barras
+            program_colors = ['#003366', '#004d99', '#0066cc', '#0080ff', '#3399ff']
+            
             fig = px.bar(
                 programs_df,
                 x="Program",
                 y="Students",
                 title="Top 5 Undergraduate Programs",
                 color="Program",
-                color_discrete_sequence=px.colors.sequential.Blues  # Usando tons de azul
+                color_discrete_sequence=program_colors  # Usando tons de azul mais vibrantes
             )
             # Definindo cor do título e texto do gráfico
             fig.update_layout(
                 title_font=dict(color="#003366"),
-                font=dict(color="#003366")
+                font=dict(color="#003366"),
+                plot_bgcolor='rgba(240,240,240,0.5)'  # Fundo cinza claro para melhor contraste
             )
+            
+            # Adicionar bordas às barras para melhor visualização
+            fig.update_traces(
+                marker_line_color='white',
+                marker_line_width=1.5,
+                opacity=0.9
+            )
+            
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.markdown('<div style="color: #003366;">No detailed program data available to display.</div>', unsafe_allow_html=True)
@@ -479,19 +511,32 @@ def create_dashboard():
             })
             
             if not states_df.empty and states_df['Students'].sum() > 0:
+                # Cores mais vibrantes para o gráfico de barras
+                state_colors = ['#003366', '#004080', '#0059b3', '#0073e6', '#1a8cff', 
+                               '#3399ff', '#4da6ff', '#66b3ff', '#80bfff', '#99ccff']
+                
                 fig = px.bar(
                     states_df,
                     x="State",
                     y="Students",
                     title="Top 10 Home States",
                     color="State",
-                    color_discrete_sequence=px.colors.sequential.Blues  # Usando tons de azul
+                    color_discrete_sequence=state_colors  # Usando tons de azul mais vibrantes
                 )
                 # Definindo cor do título e texto do gráfico
                 fig.update_layout(
                     title_font=dict(color="#003366"),
-                    font=dict(color="#003366")
+                    font=dict(color="#003366"),
+                    plot_bgcolor='rgba(240,240,240,0.5)'  # Fundo cinza claro para melhor contraste
                 )
+                
+                # Adicionar bordas às barras para melhor visualização
+                fig.update_traces(
+                    marker_line_color='white',
+                    marker_line_width=1.5,
+                    opacity=0.9
+                )
+                
                 st.plotly_chart(fig, use_container_width=True)
             else:
                 st.markdown('<div style="color: #003366;">No detailed state data available to display.</div>', unsafe_allow_html=True)
