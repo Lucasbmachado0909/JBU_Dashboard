@@ -244,21 +244,18 @@ def create_dashboard():
         layout="wide"
     )
 
+    # Estilo para as métricas
     st.markdown("""
-<style>
-[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
-    background-color: transparent;
-}
-.metric-box {
-    background-color: white;
-    border-radius: 10px;
-    padding: 10px 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-</style>
-""", unsafe_allow_html=True)
-
+    <style>
+    .metric-box {
+        background-color: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     jbu_data, using_fallback = scrape_jbu_data()
 
@@ -269,21 +266,18 @@ def create_dashboard():
     cols = st.columns(4)
     stats = jbu_data.get('stats', {})
 
+    # Métricas simplificadas sem divs personalizadas
     with cols[0]:
         st.metric("Total Enrollment", stats.get('Total Enrollment', '2,343'))
-        st.markdown('</div>', unsafe_allow_html=True)
 
     with cols[1]:
         st.metric("Student-Faculty Ratio", stats.get('Student-Faculty Ratio', '14:1'))
-        st.markdown('</div>', unsafe_allow_html=True)
 
     with cols[2]:
         st.metric("Undergraduate Programs", stats.get('Undergraduate Programs', '50+'))
-        st.markdown('</div>', unsafe_allow_html=True)
 
     with cols[3]:
         st.metric("Graduate Programs", stats.get('Graduate Programs', '18'))
-        st.markdown('</div>', unsafe_allow_html=True)
 
     if 'enrollment_details' in jbu_data and jbu_data['enrollment_details']:
         st.header("Enrollment Details")
@@ -310,26 +304,18 @@ def create_dashboard():
     if faculty_data:
         # Mostrar métricas principais em cards consistentes
         faculty_metrics = st.columns(3)
-
-with faculty_metrics[0]:
-    with st.container():
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Total Faculty", faculty_data['faculty_count'])
-        st.markdown('</div>', unsafe_allow_html=True)
-
-with faculty_metrics[1]:
-    with st.container():
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Academic Departments", len(faculty_data['departments']))
-        st.markdown('</div>', unsafe_allow_html=True)
-
-with faculty_metrics[2]:
-    if faculty_data['departments']:
-        largest_dept = max(faculty_data['departments'].items(), key=lambda x: x[1])
-        with st.container():
-            st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-            st.metric("Largest Department", f"{largest_dept[0]} ({largest_dept[1]})")
-            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with faculty_metrics[0]:
+            st.metric("Total Faculty", faculty_data['faculty_count'])
+        
+        with faculty_metrics[1]:
+            st.metric("Academic Departments", len(faculty_data['departments']))
+        
+        with faculty_metrics[2]:
+            # Calcular o departamento com mais professores
+            if faculty_data['departments']:
+                largest_dept = max(faculty_data['departments'].items(), key=lambda x: x[1])
+                st.metric("Largest Department", f"{largest_dept[0]} ({largest_dept[1]})")
         
         # Visualização da distribuição por departamento
         if faculty_data['departments']:
@@ -363,6 +349,7 @@ with faculty_metrics[2]:
                     color_discrete_sequence=px.colors.qualitative.Pastel
                 )
                 
+                # Ajustar layout para melhor legibilidade
                 fig.update_layout(
                     xaxis_title="",
                     yaxis_title="Number of Faculty",
@@ -371,11 +358,12 @@ with faculty_metrics[2]:
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
+        
         # Adicionar link para a página completa de Faculty & Staff
         st.markdown("""
         <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
             <p style="margin-bottom: 10px;">If you want to see all the faculty staff, click on the link below:</p>
-            <a href="https://www.jbu.edu/faculty/"  style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
+            <a href="https://www.jbu.edu/faculty/" style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -385,7 +373,7 @@ with faculty_metrics[2]:
         st.markdown("""
         <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
             <p style="margin-bottom: 10px;">Visit the official JBU faculty page for complete information:</p>
-            <a href="https://www.jbu.edu/faculty/"  style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
+            <a href="https://www.jbu.edu/faculty/" style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
         </div>
         """, unsafe_allow_html=True)
 
