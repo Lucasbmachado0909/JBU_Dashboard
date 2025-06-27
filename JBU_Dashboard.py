@@ -387,6 +387,7 @@ def create_dashboard():
 
     # Nova seção para dados de professores
    # Seção Faculty & Staff
+# Seção Faculty & Staff
 st.header("Faculty & Staff")
     
 # Obter dados de professores
@@ -456,36 +457,18 @@ if faculty_data:
             
             st.plotly_chart(fig, use_container_width=True)
     
-    # Diretório de professores pesquisável e filtrável
+    # Tabela simples com dados básicos dos professores
     st.subheader("Faculty Directory")
     
-    # Criar lista de departamentos para filtro
-    departments = ['All Departments'] + sorted(list(faculty_data['departments'].keys()))
+    # Adicionar campo de pesquisa
+    search_term = st.text_input("Search faculty by name or department:")
     
-    # Layout de 2 colunas para os filtros
-    filter_cols = st.columns([2, 3])
-    
-    with filter_cols[0]:
-        selected_dept = st.selectbox("Filter by Department:", departments)
-    
-    with filter_cols[1]:
-        search_term = st.text_input("Search by name, title or keyword:")
-    
-    # Filtrar a lista de professores com base nos critérios
+    # Filtrar a lista de professores com base no termo de pesquisa
     filtered_faculty = faculty_data['faculty_list']
-    
-    # Aplicar filtro de departamento
-    if selected_dept != 'All Departments':
-        filtered_faculty = [
-            f for f in filtered_faculty 
-            if f.get('department') and selected_dept in f.get('department', '')
-        ]
-    
-    # Aplicar filtro de pesquisa
     if search_term:
         search_term = search_term.lower()
         filtered_faculty = [
-            f for f in filtered_faculty 
+            f for f in faculty_data['faculty_list'] 
             if search_term in f.get('name', '').lower() or 
                (f.get('department') and search_term in f.get('department', '').lower()) or
                search_term in f.get('title', '').lower()
@@ -499,111 +482,33 @@ if faculty_data:
             faculty_table.append({
                 'Name': f.get('name', ''),
                 'Title': f.get('title', ''),
-                'Department': f.get('department', 'N/A'),
-                'Profile': f.get('profile_url', '#')
+                'Department': f.get('department', 'N/A')
             })
         
         # Converter para DataFrame e exibir
         faculty_df = pd.DataFrame(faculty_table)
-        
-        # Adicionar link para perfil
-        def make_clickable(val):
-            if val and val != '#':
-                return f'<a href="{val}" >View Profile</a>'
-            return ''
-        
-        # Aplicar formatação e exibir
-        st.dataframe(
-            faculty_df.style.format({
-                'Profile': make_clickable
-            }),
-            column_config={
-                "Profile": st.column_config.LinkColumn("Profile")
-            },
-            hide_index=True
-        )
-        
-        # Mostrar visualização em cards para os professores em destaque
-        st.subheader("Featured Faculty")
-        
-        # Adicionar CSS personalizado para os cards
-        st.markdown("""
-        <style>
-        .faculty-card {
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background-color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            height: 100%;
-            transition: transform 0.2s;
-        }
-        .faculty-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .faculty-image {
-            width: 100%;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            aspect-ratio: 1;
-            object-fit: cover;
-        }
-        .faculty-name {
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 5px;
-            color: #003366;
-        }
-        .faculty-title {
-            font-style: italic;
-            font-size: 0.9em;
-            color: #555;
-            margin-bottom: 8px;
-        }
-        .faculty-dept {
-            font-size: 0.85em;
-            color: #777;
-        }
-        .faculty-link {
-            margin-top: 10px;
-            display: inline-block;
-            color: #0066cc;
-            text-decoration: none;
-            font-size: 0.9em;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        # Dividir em 3 colunas
-        cols = st.columns(3)
-        
-        # Limitar a 9 professores para não sobrecarregar a página
-        display_faculty = filtered_faculty[:9]
-        
-        for i, faculty in enumerate(display_faculty):
-            with cols[i % 3]:
-                profile_link = faculty.get('profile_url', '#')
-                profile_link_html = f'<a href="{profile_link}"  class="faculty-link">View Full Profile</a>' if profile_link != '#' else ''
-                
-                department = faculty.get('department', '')
-                dept_html = f'<div class="faculty-dept">{department}</div>' if department else ''
-                
-                st.markdown(f"""
-                <div class="faculty-card">
-                    <img src="{faculty.get('image_url', 'https://f.hubspotusercontent30.net/hubfs/19902035/faculty/Avatar.png')}" 
-                         class="faculty-image" alt="{faculty.get('name', '')}">
-                    <div class="faculty-name">{faculty.get('name', '')}</div>
-                    <div class="faculty-title">{faculty.get('title', '')}</div>
-                    {dept_html}
-                    {profile_link_html}
-                </div>
-                """, unsafe_allow_html=True)
+        st.dataframe(faculty_df, hide_index=True)
     else:
         st.info("No faculty members found matching your search criteria.")
+    
+    # Adicionar link para a página completa de Faculty & Staff
+    st.markdown("""
+    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
+        <p style="margin-bottom: 10px;">If you want to see all the faculty staff, click on the link below:</p>
+        <a href="https://www.jbu.edu/faculty/"  style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
+    </div>
+    """, unsafe_allow_html=True)
 else:
     st.warning("⚠️ Faculty data could not be loaded. Please try again later.")
+    
+    # Mesmo assim, fornecer o link para a página oficial
+    st.markdown("""
+    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
+        <p style="margin-bottom: 10px;">Visit the official JBU faculty page for complete information:</p>
+        <a href="https://www.jbu.edu/faculty/"  style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
+    </div>
+    """, unsafe_allow_html=True)
+    
     st.header("Mission & Values")
     with st.expander("View Institutional Statements"):
         st.subheader("Mission Statement")
