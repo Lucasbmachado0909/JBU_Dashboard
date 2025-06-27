@@ -244,80 +244,81 @@ def create_dashboard():
         layout="wide"
     )
 
-    # Estilo para as métricas e texto em azul
+    # Aplicando estilo global para texto azul
     st.markdown("""
     <style>
-    /* Cor de texto azul para todo o dashboard */
-    .st-emotion-cache-nahz7x {
-        color: #003366;
-    }
-    
-    /* Cor de texto azul para cabeçalhos */
-    h1, h2, h3, h4, h5, h6 {
+    /* Aplicando cor azul a todos os elementos de texto */
+    body {
         color: #003366 !important;
     }
     
-    /* Cor de texto azul para métricas */
-    [data-testid="stMetricLabel"] {
+    /* Estilo específico para cabeçalhos */
+    .css-10trblm {
         color: #003366 !important;
     }
     
-    [data-testid="stMetricValue"] {
+    /* Estilo para métricas */
+    .css-1wivap2 {
         color: #003366 !important;
-        font-weight: bold;
-    }
-    
-    /* Estilo para links */
-    a {
-        color: #0066cc !important;
     }
     
     /* Estilo para texto normal */
-    p, li, span, div {
-        color: #003366;
-    }
-    
-    /* Estilo para tabelas */
-    .dataframe {
-        color: #003366;
-    }
-    
-    /* Estilo para o botão de expandir */
-    .st-emotion-cache-1gulkj5 {
+    p, div, span, label, .css-1d8n9bt {
         color: #003366 !important;
     }
     
-    /* Estilo para caixas de informação */
-    .st-emotion-cache-16idsys p {
-        color: #003366;
+    /* Estilo para tabelas */
+    .dataframe th, .dataframe td {
+        color: #003366 !important;
+    }
+    
+    /* Estilo para expandir/colapsar */
+    .css-1fcdlhc {
+        color: #003366 !important;
+    }
+    
+    /* Estilo para links */
+    a:not(.css-1cpxqw2) {
+        color: #0066cc !important;
+    }
+    
+    /* Estilo para botões */
+    .css-1cpxqw2 {
+        background-color: #003366 !important;
+        color: white !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    jbu_data, using_fallback = scrape_jbu_data()
-
-    st.title("John Brown University Institutional Dashboard")
+    # Título com cor azul explícita
+    st.markdown('<h1 style="color: #003366;">John Brown University Institutional Dashboard</h1>', unsafe_allow_html=True)
     st.markdown("---")
 
-    st.header("University Overview")
+    # Cabeçalho com cor azul explícita
+    st.markdown('<h2 style="color: #003366;">University Overview</h2>', unsafe_allow_html=True)
+    
     cols = st.columns(4)
     stats = jbu_data.get('stats', {})
 
-    # Métricas simplificadas sem divs personalizadas
+    # Métricas com rótulos coloridos manualmente
     with cols[0]:
-        st.metric("Total Enrollment", stats.get('Total Enrollment', '2,343'))
+        st.markdown('<div style="color: #003366; font-weight: bold;">Total Enrollment</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{stats.get("Total Enrollment", "2,343")}</div>', unsafe_allow_html=True)
 
     with cols[1]:
-        st.metric("Student-Faculty Ratio", stats.get('Student-Faculty Ratio', '14:1'))
+        st.markdown('<div style="color: #003366; font-weight: bold;">Student-Faculty Ratio</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{stats.get("Student-Faculty Ratio", "14:1")}</div>', unsafe_allow_html=True)
 
     with cols[2]:
-        st.metric("Undergraduate Programs", stats.get('Undergraduate Programs', '50+'))
+        st.markdown('<div style="color: #003366; font-weight: bold;">Undergraduate Programs</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{stats.get("Undergraduate Programs", "50+")}</div>', unsafe_allow_html=True)
 
     with cols[3]:
-        st.metric("Graduate Programs", stats.get('Graduate Programs', '18'))
+        st.markdown('<div style="color: #003366; font-weight: bold;">Graduate Programs</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{stats.get("Graduate Programs", "18")}</div>', unsafe_allow_html=True)
 
     if 'enrollment_details' in jbu_data and jbu_data['enrollment_details']:
-        st.header("Enrollment Details")
+        st.markdown('<h2 style="color: #003366;">Enrollment Details</h2>', unsafe_allow_html=True)
         enrollment_df = pd.DataFrame({
             'Category': list(jbu_data['enrollment_details'].keys()),
             'Count': list(jbu_data['enrollment_details'].values())
@@ -331,10 +332,15 @@ def create_dashboard():
             hole=0.3,
             color_discrete_sequence=px.colors.sequential.Blues_r  # Usando tons de azul
         )
+        # Definindo cor do título do gráfico
+        fig.update_layout(
+            title_font=dict(color="#003366"),
+            font=dict(color="#003366")
+        )
         st.plotly_chart(fig, use_container_width=True)
 
-    # Seção Faculty & Staff - REPOSICIONADA AQUI
-    st.header("Faculty & Staff")
+    # Seção Faculty & Staff
+    st.markdown('<h2 style="color: #003366;">Faculty & Staff</h2>', unsafe_allow_html=True)
     
     # Obter dados de professores
     faculty_data = scrape_jbu_faculty_data()
@@ -344,20 +350,23 @@ def create_dashboard():
         faculty_metrics = st.columns(3)
         
         with faculty_metrics[0]:
-            st.metric("Total Faculty", faculty_data['faculty_count'])
+            st.markdown('<div style="color: #003366; font-weight: bold;">Total Faculty</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{faculty_data["faculty_count"]}</div>', unsafe_allow_html=True)
         
         with faculty_metrics[1]:
-            st.metric("Academic Departments", len(faculty_data['departments']))
+            st.markdown('<div style="color: #003366; font-weight: bold;">Academic Departments</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{len(faculty_data["departments"])}</div>', unsafe_allow_html=True)
         
         with faculty_metrics[2]:
             # Calcular o departamento com mais professores
             if faculty_data['departments']:
                 largest_dept = max(faculty_data['departments'].items(), key=lambda x: x[1])
-                st.metric("Largest Department", f"{largest_dept[0]} ({largest_dept[1]})")
+                st.markdown('<div style="color: #003366; font-weight: bold;">Largest Department</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{largest_dept[0]} ({largest_dept[1]})</div>', unsafe_allow_html=True)
         
         # Visualização da distribuição por departamento
         if faculty_data['departments']:
-            st.subheader("Faculty Distribution by Department")
+            st.markdown('<h3 style="color: #003366;">Faculty Distribution by Department</h3>', unsafe_allow_html=True)
             
             # Filtrar departamentos com pelo menos 2 professores para melhor visualização
             filtered_departments = {k: v for k, v in faculty_data['departments'].items() if v >= 2}
@@ -387,12 +396,14 @@ def create_dashboard():
                     color_discrete_sequence=px.colors.sequential.Blues  # Usando tons de azul
                 )
                 
-                # Ajustar layout para melhor legibilidade
+                # Ajustar layout para melhor legibilidade e cor azul
                 fig.update_layout(
                     xaxis_title="",
                     yaxis_title="Number of Faculty",
                     xaxis={'categoryorder':'total descending'},
                     margin=dict(l=20, r=20, t=40, b=20),
+                    title_font=dict(color="#003366"),
+                    font=dict(color="#003366")
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
@@ -400,7 +411,7 @@ def create_dashboard():
         # Adicionar link para a página completa de Faculty & Staff
         st.markdown("""
         <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
-            <p style="margin-bottom: 10px; color: #003366;">If you want to see all the faculty staff, click on the link below:</p>
+            <p style="margin-bottom: 10px; color: #003366; font-weight: bold;">If you want to see all the faculty staff, click on the link below:</p>
             <a href="https://www.jbu.edu/faculty/" style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white !important; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
         </div>
         """, unsafe_allow_html=True)
@@ -410,13 +421,13 @@ def create_dashboard():
         # Mesmo assim, fornecer o link para a página oficial
         st.markdown("""
         <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
-            <p style="margin-bottom: 10px; color: #003366;">Visit the official JBU faculty page for complete information:</p>
+            <p style="margin-bottom: 10px; color: #003366; font-weight: bold;">Visit the official JBU faculty page for complete information:</p>
             <a href="https://www.jbu.edu/faculty/" style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white !important; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
         </div>
         """, unsafe_allow_html=True)
 
     if 'top_programs' in jbu_data and jbu_data['top_programs']:
-        st.header("Top Undergraduate Programs")
+        st.markdown('<h2 style="color: #003366;">Top Undergraduate Programs</h2>', unsafe_allow_html=True)
         
         def safe_extract_number(value):
             if not value:
@@ -440,12 +451,17 @@ def create_dashboard():
                 color="Program",
                 color_discrete_sequence=px.colors.sequential.Blues  # Usando tons de azul
             )
+            # Definindo cor do título e texto do gráfico
+            fig.update_layout(
+                title_font=dict(color="#003366"),
+                font=dict(color="#003366")
+            )
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("No detailed program data available to display.")
+            st.markdown('<div style="color: #003366;">No detailed program data available to display.</div>', unsafe_allow_html=True)
 
     if 'top_states' in jbu_data and jbu_data['top_states']:
-        st.header("Geographic Distribution")
+        st.markdown('<h2 style="color: #003366;">Geographic Distribution</h2>', unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         
         with col1:
@@ -471,9 +487,14 @@ def create_dashboard():
                     color="State",
                     color_discrete_sequence=px.colors.sequential.Blues  # Usando tons de azul
                 )
+                # Definindo cor do título e texto do gráfico
+                fig.update_layout(
+                    title_font=dict(color="#003366"),
+                    font=dict(color="#003366")
+                )
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No detailed state data available to display.")
+                st.markdown('<div style="color: #003366;">No detailed state data available to display.</div>', unsafe_allow_html=True)
         
         with col2:
             if 'countries' in jbu_data and jbu_data['countries'].get('by_citizenship'):
@@ -484,17 +505,21 @@ def create_dashboard():
                         'Rank': list(range(1, len(countries) + 1))
                     })
                     
-                    st.subheader("Top Countries by Citizenship")
-                    st.table(countries_df)
+                    st.markdown('<h3 style="color: #003366;">Top Countries by Citizenship</h3>', unsafe_allow_html=True)
+                    # Aplicando estilo à tabela para texto azul
+                    st.markdown(
+                        countries_df.style.set_properties(**{'color': '#003366'})
+                        .to_html(), unsafe_allow_html=True
+                    )
 
-    st.header("Mission & Values")
+    st.markdown('<h2 style="color: #003366;">Mission & Values</h2>', unsafe_allow_html=True)
     with st.expander("View Institutional Statements"):
-        st.subheader("Mission Statement")
-        st.write(jbu_data['mission'])
+        st.markdown('<h3 style="color: #003366;">Mission Statement</h3>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color: #003366;">{jbu_data["mission"]}</p>', unsafe_allow_html=True)
 
-        st.subheader("Core Values")
+        st.markdown('<h3 style="color: #003366;">Core Values</h3>', unsafe_allow_html=True)
         for value in jbu_data['values']:
-            st.markdown(f"- {value}")
+            st.markdown(f'<li style="color: #003366;">{value}</li>', unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -502,8 +527,9 @@ def create_dashboard():
         st.warning("⚠️ Some data could not be scraped and fallback values are being used.")
     else:
         st.success("✅ Live data successfully loaded from jbu.edu.")
-    st.caption(f"Data sourced from jbu.edu | Last updated: {datetime.now().strftime('%B %d, %Y %H:%M')}")
+    st.markdown(f'<p style="color: #003366; font-size: 0.8rem;">Data sourced from jbu.edu | Last updated: {datetime.now().strftime("%B %d, %Y %H:%M")}</p>', unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
+    jbu_data, using_fallback = scrape_jbu_data()
     create_dashboard()
