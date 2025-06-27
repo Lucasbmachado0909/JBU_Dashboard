@@ -313,6 +313,93 @@ def create_dashboard():
         )
         st.plotly_chart(fig, use_container_width=True)
 
+    # Seção Faculty & Staff - REPOSICIONADA AQUI
+    st.header("Faculty & Staff")
+    
+    # Obter dados de professores
+    faculty_data = scrape_jbu_faculty_data()
+    
+    if faculty_data:
+        # Mostrar métricas principais em cards consistentes
+        faculty_metrics = st.columns(3)
+        
+        with faculty_metrics[0]:
+            st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+            st.metric("Total Faculty", faculty_data['faculty_count'])
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with faculty_metrics[1]:
+            st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+            st.metric("Academic Departments", len(faculty_data['departments']))
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with faculty_metrics[2]:
+            # Calcular o departamento com mais professores
+            if faculty_data['departments']:
+                largest_dept = max(faculty_data['departments'].items(), key=lambda x: x[1])
+                st.markdown('<div class="metric-box">', unsafe_allow_html=True)
+                st.metric("Largest Department", f"{largest_dept[0]} ({largest_dept[1]})")
+                st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Visualização da distribuição por departamento
+        if faculty_data['departments']:
+            st.subheader("Faculty Distribution by Department")
+            
+            # Filtrar departamentos com pelo menos 2 professores para melhor visualização
+            filtered_departments = {k: v for k, v in faculty_data['departments'].items() if v >= 2}
+            
+            if filtered_departments:
+                dept_df = pd.DataFrame({
+                    'Department': list(filtered_departments.keys()),
+                    'Faculty Count': list(filtered_departments.values())
+                })
+                
+                # Ordenar por contagem (do maior para o menor)
+                dept_df = dept_df.sort_values('Faculty Count', ascending=False)
+                
+                # Limitar a 10 departamentos para melhor visualização
+                if len(dept_df) > 10:
+                    dept_df = dept_df.head(10)
+                    chart_title = "Top 10 Departments by Faculty Count"
+                else:
+                    chart_title = "Faculty Distribution by Department"
+                
+                fig = px.bar(
+                    dept_df,
+                    x='Department',
+                    y='Faculty Count',
+                    title=chart_title,
+                    color='Department',
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                
+                # Ajustar layout para melhor legibilidade
+                fig.update_layout(
+                    xaxis_title="",
+                    yaxis_title="Number of Faculty",
+                    xaxis={'categoryorder':'total descending'},
+                    margin=dict(l=20, r=20, t=40, b=20),
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+        # Adicionar link para a página completa de Faculty & Staff
+        st.markdown("""
+        <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
+            <p style="margin-bottom: 10px;">If you want to see all the faculty staff, click on the link below:</p>
+            <a href="https://www.jbu.edu/faculty/"  style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.warning("⚠️ Faculty data could not be loaded. Please try again later.")
+        
+        # Mesmo assim, fornecer o link para a página oficial
+        st.markdown("""
+        <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
+            <p style="margin-bottom: 10px;">Visit the official JBU faculty page for complete information:</p>
+            <a href="https://www.jbu.edu/faculty/"  style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
+        </div>
+        """, unsafe_allow_html=True)
+
     if 'top_programs' in jbu_data and jbu_data['top_programs']:
         st.header("Top Undergraduate Programs")
         
@@ -385,130 +472,6 @@ def create_dashboard():
                     st.subheader("Top Countries by Citizenship")
                     st.table(countries_df)
 
-    # Nova seção para dados de professores
-   # Seção Faculty & Staff
-# Seção Faculty & Staff
-st.header("Faculty & Staff")
-    
-# Obter dados de professores
-faculty_data = scrape_jbu_faculty_data()
-    
-if faculty_data:
-    # Mostrar métricas principais em cards consistentes
-    faculty_metrics = st.columns(3)
-    
-    with faculty_metrics[0]:
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Total Faculty", faculty_data['faculty_count'])
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with faculty_metrics[1]:
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Academic Departments", len(faculty_data['departments']))
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with faculty_metrics[2]:
-        # Calcular o departamento com mais professores
-        if faculty_data['departments']:
-            largest_dept = max(faculty_data['departments'].items(), key=lambda x: x[1])
-            st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-            st.metric("Largest Department", f"{largest_dept[0]} ({largest_dept[1]})")
-            st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Visualização da distribuição por departamento
-    if faculty_data['departments']:
-        st.subheader("Faculty Distribution by Department")
-        
-        # Filtrar departamentos com pelo menos 2 professores para melhor visualização
-        filtered_departments = {k: v for k, v in faculty_data['departments'].items() if v >= 2}
-        
-        if filtered_departments:
-            dept_df = pd.DataFrame({
-                'Department': list(filtered_departments.keys()),
-                'Faculty Count': list(filtered_departments.values())
-            })
-            
-            # Ordenar por contagem (do maior para o menor)
-            dept_df = dept_df.sort_values('Faculty Count', ascending=False)
-            
-            # Limitar a 10 departamentos para melhor visualização
-            if len(dept_df) > 10:
-                dept_df = dept_df.head(10)
-                chart_title = "Top 10 Departments by Faculty Count"
-            else:
-                chart_title = "Faculty Distribution by Department"
-            
-            fig = px.bar(
-                dept_df,
-                x='Department',
-                y='Faculty Count',
-                title=chart_title,
-                color='Department',
-                color_discrete_sequence=px.colors.qualitative.Pastel
-            )
-            
-            # Ajustar layout para melhor legibilidade
-            fig.update_layout(
-                xaxis_title="",
-                yaxis_title="Number of Faculty",
-                xaxis={'categoryorder':'total descending'},
-                margin=dict(l=20, r=20, t=40, b=20),
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
-    
-    # Tabela simples com dados básicos dos professores
-    st.subheader("Faculty Directory")
-    
-    # Adicionar campo de pesquisa
-    search_term = st.text_input("Search faculty by name or department:")
-    
-    # Filtrar a lista de professores com base no termo de pesquisa
-    filtered_faculty = faculty_data['faculty_list']
-    if search_term:
-        search_term = search_term.lower()
-        filtered_faculty = [
-            f for f in faculty_data['faculty_list'] 
-            if search_term in f.get('name', '').lower() or 
-               (f.get('department') and search_term in f.get('department', '').lower()) or
-               search_term in f.get('title', '').lower()
-        ]
-    
-    # Mostrar os resultados em formato de tabela
-    if filtered_faculty:
-        # Criar tabela para visualização
-        faculty_table = []
-        for f in filtered_faculty:
-            faculty_table.append({
-                'Name': f.get('name', ''),
-                'Title': f.get('title', ''),
-                'Department': f.get('department', 'N/A')
-            })
-        
-        # Converter para DataFrame e exibir
-        faculty_df = pd.DataFrame(faculty_table)
-        st.dataframe(faculty_df, hide_index=True)
-    else:
-        st.info("No faculty members found matching your search criteria.")
-    
-    # Adicionar link para a página completa de Faculty & Staff
-    st.markdown("""
-    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
-        <p style="margin-bottom: 10px;">If you want to see all the faculty staff, click on the link below:</p>
-        <a href="https://www.jbu.edu/faculty/"  style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
-    </div>
-    """, unsafe_allow_html=True)
-else:
-    st.warning("⚠️ Faculty data could not be loaded. Please try again later.")
-    
-    # Mesmo assim, fornecer o link para a página oficial
-    st.markdown("""
-    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 10px; text-align: center;">
-        <p style="margin-bottom: 10px;">Visit the official JBU faculty page for complete information:</p>
-        <a href="https://www.jbu.edu/faculty/"  style="display: inline-block; padding: 8px 16px; background-color: #003366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit JBU Faculty Page</a>
-    </div>
-    """, unsafe_allow_html=True)
-    
     st.header("Mission & Values")
     with st.expander("View Institutional Statements"):
         st.subheader("Mission Statement")
