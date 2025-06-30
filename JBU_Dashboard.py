@@ -7,6 +7,97 @@ from collections import defaultdict
 import re
 from datetime import datetime
 
+# Configuração para forçar o tema light
+st.set_page_config(
+    page_title="JBU Institutional Dashboard",
+    page_icon=":mortar_board:",
+    layout="wide"
+)
+
+# Forçar tema light
+st.markdown("""
+<style>
+    /* Forçar tema light */
+    .stApp {
+        background-color: white;
+    }
+    
+    /* Esconder o seletor de tema */
+    [data-testid="stToolbar"] {
+        visibility: hidden;
+    }
+    
+    /* Garantir que todos os textos estejam em azul, mesmo no modo escuro */
+    .stApp[data-theme="dark"] {
+        background-color: white !important;
+    }
+    
+    .stApp[data-theme="dark"] p, 
+    .stApp[data-theme="dark"] div, 
+    .stApp[data-theme="dark"] span, 
+    .stApp[data-theme="dark"] label, 
+    .stApp[data-theme="dark"] h1, 
+    .stApp[data-theme="dark"] h2, 
+    .stApp[data-theme="dark"] h3, 
+    .stApp[data-theme="dark"] h4, 
+    .stApp[data-theme="dark"] h5 {
+        color: #003366 !important;
+    }
+    
+    /* Aplicando cor azul a todos os elementos de texto */
+    body {
+        color: #003366 !important;
+    }
+    
+    /* Estilo específico para cabeçalhos */
+    .css-10trblm {
+        color: #003366 !important;
+    }
+    
+    /* Estilo para métricas */
+    .css-1wivap2 {
+        color: #003366 !important;
+    }
+    
+    /* Estilo para texto normal */
+    p, div, span, label, .css-1d8n9bt {
+        color: #003366 !important;
+    }
+    
+    /* Estilo para tabelas */
+    .dataframe th, .dataframe td {
+        color: #003366 !important;
+    }
+    
+    /* Estilo para expandir/colapsar */
+    .css-1fcdlhc {
+        color: #003366 !important;
+    }
+    
+    /* Estilo para links */
+    a:not(.css-1cpxqw2) {
+        color: #0066cc !important;
+    }
+    
+    /* Estilo para botões */
+    .css-1cpxqw2 {
+        background-color: #003366 !important;
+        color: white !important;
+    }
+    
+    /* Garantir fundo branco para gráficos no modo escuro */
+    .stApp[data-theme="dark"] .js-plotly-plot .plotly {
+        background-color: white !important;
+    }
+    
+    /* Garantir cor de texto para métricas no modo escuro */
+    .stApp[data-theme="dark"] [data-testid="stMetricLabel"],
+    .stApp[data-theme="dark"] [data-testid="stMetricValue"] {
+        color: #003366 !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 @st.cache_data(ttl=3600)
 def scrape_jbu_data():
     url = "https://www.jbu.edu/about/facts/"
@@ -238,65 +329,17 @@ def scrape_jbu_faculty_data():
 
 
 def create_dashboard():
-    st.set_page_config(
-        page_title="JBU Institutional Dashboard",
-        page_icon=":mortar_board:",
-        layout="wide"
-    )
-    
-    st.markdown("""
-    <style>
-    /* Aplicando cor azul a todos os elementos de texto */
-    body {
-        color: #003366 !important;
-    }
-    
-    /* Estilo específico para cabeçalhos */
-    .css-10trblm {
-        color: #003366 !important;
-    }
-    
-    /* Estilo para métricas */
-    .css-1wivap2 {
-        color: #003366 !important;
-    }
-    
-    /* Estilo para texto normal */
-    p, div, span, label, .css-1d8n9bt {
-        color: #003366 !important;
-    }
-    
-    /* Estilo para tabelas */
-    .dataframe th, .dataframe td {
-        color: #003366 !important;
-    }
-    
-    /* Estilo para expandir/colapsar */
-    .css-1fcdlhc {
-        color: #003366 !important;
-    }
-    
-    /* Estilo para links */
-    a:not(.css-1cpxqw2) {
-        color: #0066cc !important;
-    }
-    
-    /* Estilo para botões */
-    .css-1cpxqw2 {
-        background-color: #003366 !important;
-        color: white !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
+    # Título com cor azul explícita
     st.markdown('<h1 style="color: #003366;">John Brown University Institutional Dashboard</h1>', unsafe_allow_html=True)
     st.markdown("---")
 
+    # Cabeçalho com cor azul explícita
     st.markdown('<h2 style="color: #003366;">University Overview</h2>', unsafe_allow_html=True)
     
     cols = st.columns(4)
     stats = jbu_data.get('stats', {})
 
+    # Métricas com rótulos coloridos manualmente
     with cols[0]:
         st.markdown('<div style="color: #003366; font-weight: bold;">Total Enrollment</div>', unsafe_allow_html=True)
         st.markdown(f'<div style="color: #003366; font-size: 2.5rem; font-weight: bold;">{stats.get("Total Enrollment", "2,343")}</div>', unsafe_allow_html=True)
