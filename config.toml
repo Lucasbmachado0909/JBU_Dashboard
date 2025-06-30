@@ -1,0 +1,7 @@
+[theme]
+base = "light"
+primaryColor = "#003366"  # JBU blue
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#003366"
+font = "sans serif"
